@@ -1,15 +1,40 @@
 var express = require('express');
 var router = express.Router();
+// var mongoose = require('mongoose')
 var { dbName, dbUrl, mongodbClient, mongodb } = require('../dbconfig')
 const client = new mongodbClient(dbUrl);
 var { hashCompare, hashpassword } = require('../bin/auth');
+var {useDetails}=require('../dbschema')
 
+// mongoose.connect(dbUrl);
 
 router.get('/', async (req, res) => {
   await client.connect();
   try {
     let db = await client.db(dbName);
     let user = await db.collection('users').find().toArray()
+    res.send({
+      statusCode: 200,
+      data: user
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.send({
+      statusCode: 400,
+      message: "bad requst"
+    })
+  }
+  finally {
+    client.close()
+  }
+})
+
+router.get('/:id', async (req, res) => {
+  await client.connect();
+  try {
+    let db = await client.db(dbName);
+    let user = await db.collection('users').findOne({_id:mongodb.ObjectId(req.params.id)})
     res.send({
       statusCode: 200,
       data: user
