@@ -4,7 +4,7 @@ var router = express.Router();
 var { dbName, dbUrl, mongodbClient, mongodb } = require('../dbconfig')
 const client = new mongodbClient(dbUrl);
 var { hashCompare, hashpassword } = require('../bin/auth');
-var {useDetails}=require('../dbschema')
+// var {useDetails}=require('../dbschema')
 
 // mongoose.connect(dbUrl);
 
@@ -61,7 +61,7 @@ router.post('/sign-up', async (req, res) => {
     if (user.length === 0) {
       if (user.password === user.confirmPassword) {
         let user = { ...req.body, age: '', dob: '', mobile: '', gender: '' }
-        req.body.password = await hashpassword(req.body.password);
+        user.password = await hashpassword(user.password);
         let users = await db.collection('users').insertOne(user);
 
         res.send({
@@ -78,7 +78,7 @@ router.post('/sign-up', async (req, res) => {
     }
     else {
       res.send({
-        statusCode: 200,
+        statusCode: 400,
         message: "User already exists,kindly login"
       })
     }
