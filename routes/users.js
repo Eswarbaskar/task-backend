@@ -143,8 +143,10 @@ router.put('/update/:id', async(req, res) => {
   await client.connect();
   try {
     let db = await client.db(dbName);
-    console.log(req.body)
-    let user = await db.collection('users').updateOne({ _id:mongodb.ObjectId(req.params.id) }, { $set:req.body  })
+    const obj = req.body;
+    delete obj._id
+    console.log(req.body, obj)
+    let user = await db.collection('users').updateOne({ _id:mongodb.ObjectId(req.params.id) }, { $set: obj  })
     res.send({
       statusCode: 200,
       message: "Successfully Added",
