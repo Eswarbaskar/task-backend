@@ -60,8 +60,9 @@ router.post('/sign-up', async (req, res) => {
     const user = await db.collection('users').find({ email: req.body.email }).toArray()
     if (user.length === 0) {
       if (user.password === user.confirmPassword) {
+        req.body.password = await hashpassword(req.body.password);
         let user = { ...req.body, age: '', dob: '', mobile: '', gender: '' }
-        user.password = await hashpassword(user.password);
+        
         let users = await db.collection('users').insertOne(user);
 
         res.send({
