@@ -139,6 +139,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
+
 router.put('/update/:id', async(req, res) => {
   await client.connect();
   try {
@@ -165,5 +167,32 @@ router.put('/update/:id', async(req, res) => {
      client.close()
   }
 })
+
+
+router.delete('/delete/:id', async(req, res) => {
+  await client.connect();
+  try {
+    let db = await client.db(dbName);
+    await db.collection('users').deleteOne({ _id:mongodb.ObjectId(req.params.id) })
+    let user = await db.collection('users').find().toArray()
+    res.send({
+      statusCode: 200,
+      message: "Deleted Successfully",
+      user
+    })
+
+  } catch (error) {
+    console.log(error)
+    res.send({
+      statusCode: 500,
+      message: "Internal Server Error"
+    })
+
+  }
+  finally {
+     client.close()
+  }
+})  
+
 
 module.exports = router;
