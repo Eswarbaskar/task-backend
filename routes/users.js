@@ -3,32 +3,48 @@ var router = express.Router();
 // var mongoose = require('mongoose')
 var { dbName, dbUrl, mongodbClient, mongodb } = require('../dbconfig')
 const client = new mongodbClient(dbUrl);
-var { hashCompare, hashpassword } = require('../bin/auth');
+var { hashCompare, hashpassword,creatToken,middle,decodeToken } = require('../bin/auth');
 // var {useDetails}=require('../dbschema')
 
 // mongoose.connect(dbUrl);
 
-router.get('/', async (req, res) => {
+router.get('/',middle,async(req, res)=> {
   await client.connect();
   try {
-    let db = await client.db(dbName);
-    let user = await db.collection('users').find().toArray()
-    res.send({
-      statusCode: 200,
-      data: user
-    })
-
+    let token = req.headers.authorization.split(' ')[1];
+    let data = await decodeToken(token)
+    
+    const db = await client.db(dbName);
+    let user = await db.collection('users').findOne({email:data.email,name:data.name});
+    
+    if(user)
+    {
+        let users = await db.collection('users').find().toArray()
+        console.log(users);
+        res.send({
+          statusCode: 200,
+          users
+        })
+    }
+    else
+    {
+      res.send({
+        statusCode: 401,
+        message:'Unauthorized'
+      })
+    }
   } catch (error) {
-    console.log(error);
-    res.send({
-      statusCode: 400,
-      message: "bad requst"
+    console.log(error)
+    res.send({ 
+      statusCode:500,
+      message:"Internal Server Error",
+      error
     })
   }
-  finally {
+  finally{
     client.close()
   }
-})
+});
 
 router.get('/:id', async (req, res) => {
   await client.connect();
@@ -106,9 +122,14 @@ router.post('/login', async (req, res) => {
     if (user.length === 1) {
       let hashResult = await hashCompare(req.body.password, user[0].password)
       if (hashResult) {
+           let token = await creatToken({
+            email:user[0].email,
+            name:user[0].name
+           })
         res.send({
           statusCode: 200,
-          message: "User Logged in Successfully"
+          message: "User Logged in Successfully",
+          token
         })
       }
       else {
