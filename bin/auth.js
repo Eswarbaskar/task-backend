@@ -22,20 +22,22 @@ const creatToken = async ({ email, name }) => {
 }
 
 const decodeToken = async(token)=>{
-    let data = await jwt.verify(token,secretkey)
+    let data = await jwt.decode(token)
     return data
 }
 
-const middle = async (req,res,next) => {
+const middle = async(req,res,next)=>{
     let token = req.headers.authorization.split(' ')[1];
     let data = await jwt.decode(token)
-    if ((Math.round(+Date.now() / 1000)) <= data.exp) {
+    if((Math.round(+Date.now()/1000))<=data.exp)
+    {
         next()
     }
-    else {
+    else
+    {
         res.send({
-            statusCode: 401,
-            message: "Token Expired"
+            statusCode:401,
+            message:"Token Expired"
         })
     }
 }
